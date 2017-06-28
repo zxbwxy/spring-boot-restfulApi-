@@ -1,0 +1,34 @@
+
+package com.ailk.devinfo.mapper;
+
+import com.ailk.devinfo.domain.DevInfoPO;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+import java.util.Map;
+@Mapper
+public interface DevInfoMapper
+{
+	List<Map<String, Object>> queryDevInfo( DevInfoPO po);
+
+	List<Map<String, Object>> qryVendors();
+
+	List<Map<String, Object>> qryDeviceModels(@Param("vendor_id") String vendor_id);
+
+	List<Map<String, Object>> qryCitys();
+
+	List<Map<String, Object>> qryOffices(@Param("city_id")String city_id);
+
+	List<Map<String, Object>> qryZones();
+
+	List<Map<String, Object>> qryResourceTypes();
+
+	List<Map<String, Object>> qryOsVersions();
+	List<Map<String, Object>> qryGathers();
+
+
+	int delDevInfo(@Param("deviceId") String device_id);
+
+	int updDevInfo(DevInfoPO devInfoPO);
+}

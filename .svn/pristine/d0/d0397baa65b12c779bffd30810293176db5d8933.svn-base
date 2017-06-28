@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Implementation-Title: SpringBoot_DevInfo
+Implementation-Version: 0.0.1-SNAPSHOT
+Built-By: 59690
+Implementation-Vendor-Id: com.ailk.devinfo
+Created-By: IntelliJ IDEA
+Build-Jdk: 1.8.0_92
+Main-Class: ${start-class}
+

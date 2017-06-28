@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+        namespace="com.ailk.devinfo.mapper.SpecialLineMapper">
+
+    <select id="qryDistinctCityName"
+            resultType="map">
+		select
+		 distinct city_name as "city_name"
+		 from tab_vpncustome_info  order by city_name
+	</select>
+    <select id="qryCitys" resultType="map">
+	SELECT
+  (CASE city_layer
+       WHEN 2
+         THEN ' '|| city_name
+       WHEN 3
+         THEN '   '|| city_name
+       ELSE city_name END) AS "city_name",city_id AS "city_id",parent_id AS "parent_id"
+FROM tab_city WHERE city_layer IS NOT NULL
+
+	</select>
+
+    <select id="isExistInCustomInfo" parameterType="map" resultType="int">
+		select count(1) from tab_vpncustome_info where circuitno='${_parameter}'
+	</select>
+    <select id="isExistInVpnInfo" parameterType="map" resultType="int">
+		select count(1) from tp_mplsvpn_info where circuitno='${_parameter}'
+	</select>
+    <sql id="conditions">
+        <if test="customeName!=null and customeName!=''">
+            and a.custome_name = #{customeName}
+        </if>
+        <if test="vrfName!=null and vrfName!=''">
+            and a.vrfname = #{vrfName}
+        </if>
+        <if test="barsOrSrIP!=null and barsOrSrIP!=''">
+            and d.loopback_ip = #{barsOrSrIP}
+        </if>
+        <if test="circuitno!=null and circuitno!=''">
+            and a.circuitno = #{circuitno}
+        </if>
+        <if test="lineFlag!=null and lineFlag=='VPN'">
+            and a.circuitno like 'U%'
+        </if>
+        <if test="lineFlag!=null and lineFlag=='Internet'">
+            and a.circuitno like 'G%'
+        </if>
+        <if test="cityId!=null and cityId!=''">
+            and d.city_id in (${cityId})
+        </if>
+    </sql>
+    <select id="qryVPNOrInternetData" parameterType="com.ailk.devinfo.domain.SpecialLinePO"
+            resultType="map">
+        SELECT
+        <if test="top!=null and top!=''">
+            top ${top}
+        </if>
+		* FROM (
+		SELECT
+		b.circuitno AS "circuitno",
+		a.cusip AS "cusip",
+		b.arp_ip AS "arp_ip",
+		b.ceipnet AS "ceipnet",
+		b.cvlan AS "cvlan",
+		b.svlan AS "svlan",
+		a.city_name AS "city_name",
+		a.custome_name AS "custome_name",
+		a.custome_leve AS "custome_leve",
+		a.cus_manager AS "cus_manager",
+		b.vrfname AS "vrfname",
+		d.device_name AS "device_name",
+		d.city_id AS "city_id",
+		'1' As "status" --匹配成功
+		FROM tab_vpncustome_info a INNER JOIN tp_mplsvpn_info b ON a.circuitno = b.circuitno
+		LEFT JOIN tab_deviceresource d ON b.brasip = d.loopback_ip
+		WHERE a.circuitno IS NOT NULL
+		<include refid="conditions"/>
+		UNION ALL
+		SELECT
+		a.
+		circuitno AS "circuitno",
+		a.cusip AS "cusip",
+		b.arp_ip AS "arp_ip",
+		a.cusipnet AS "ceipnet",
+		a.cvlan AS "cvlan",
+		a.svlan AS "svlan",
+		a.city_name AS "city_name",
+		a.custome_name AS "custome_name",
+		a.custome_leve AS "custome_leve",
+		a.cus_manager AS "cus_manager",
+		'2' AS "vrfname",
+		d.device_name AS "device_name",
+		d.city_id AS "city_id",
+		'2' As "status"--网络没有发现
+		FROM tab_vpncustome_info AS a
+		LEFT JOIN tp_mplsvpn_info b ON a.circuitno = b.circuitno
+		LEFT JOIN tab_deviceresource d ON a.bars_sr_pe_ip = d.loopback_ip
+		WHERE a.circuitno IS NOT NULL
+		AND NOT EXISTS(SELECT *
+		FROM tp_mplsvpn_info AS c
+		WHERE a.circuitno = c.circuitno)
+		<include refid="conditions"/>
+		UNION ALL
+		SELECT
+		b.
+		circuitno AS "circuitno",
+		a.cusip AS "cusip",
+		b.arp_ip AS "arp_ip",
+		b.ceipnet AS "ceipnet",
+		b.cvlan AS "cvlan",
+		b.svlan AS "svlan",
+		'3' AS "city_name",
+		'3' AS "custome_name",
+		'3' AS "custome_leve",
+		'3' AS "cus_manager",
+		b.vrfname AS "vrfname",
+		d.device_name AS "device_name",
+		d.city_id AS "city_id",
+		'3' AS "status" --未匹配基础资料
+		FROM tp_mplsvpn_info AS b
+		LEFT JOIN tab_vpncustome_info a on a.circuitno = b.circuitno
+		LEFT JOIN tab_deviceresource d ON b.brasip = d.loopback_ip
+		WHERE b.circuitno IS NOT NULL
+		AND NOT EXISTS(SELECT *
+		FROM tab_vpncustome_info AS c
+		WHERE b.circuitno = c.circuitno)
+		<include refid="conditions"/>
+		) T
+    </select>
+
+
+
+    <insert id="batchinsert" parameterType="java.util.List">
+		insert into tab_vpncustome_info(
+			city_name, --地市
+			custome_name,--客户名称
+			custome_leve, --客户等级
+			custome_speed,--客户速率
+			custome_type,--客户类型
+			circuitno,--电路编号
+			if_man_bear,--是否通过IP城域网承载
+			bus_type,--业务控制点类型
+			bars_sr_pe_ip,--BRAS/SR 或者PE 子接口
+			bars_sr_pe_port,--*BRAS/SR 或者PE IP地址
+			bars_sr_pe_physicalport,--BRAS/SR 或者PE 物理口
+			access_type,--接入方式
+			access_ip,--接入设备IP
+			access_port,--接入端口号
+			cus_manager,--客户经理
+			cus_manager_phone,--客户经理联系方式
+			open_acc_addr,--开户地址
+			open_acc_name,--开户名
+			open_acc_phone,--开户人电话
+			open_acc_time,--开通时间
+			vrfname,--VRFname
+			rd,--RD
+			import_rt,--Import RT
+			export_rt,--Export RT
+			svlan,--Svlan
+			cvlan,--Cvlan
+			cusipnet,--用户网关
+			cusip,--用户IP
+			odf1,
+			odf2) values(
+			#{city_name},
+			#{custome_name},
+			#{custome_leve},
+			#{custome_speed},
+			#{custome_type},
+			#{circuitno},
+			#{if_man_bear},
+			#{bus_type},
+			#{bars_sr_pe_ip},
+			#{bars_sr_pe_port},
+			#{bars_sr_pe_physicalport},
+			#{access_type},
+			#{access_ip},
+			#{access_port},
+			#{cus_manager},
+			#{cus_manager_phone},
+			#{open_acc_addr},
+			#{open_acc_name},
+			#{open_acc_phone},
+			#{open_acc_time},
+			#{vrfname},
+			#{rd},
+			#{import_rt},
+			#{export_rt},
+			#{svlan},
+			#{cvlan},
+			#{cusipnet},
+			#{cusip},
+			#{odf1},
+			#{odf2}
+					)
+	</insert>
+    <update id="updCustomerInfo" parameterType="com.ailk.devinfo.domain.SpecialDetailPO">
+        update tab_vpncustome_info
+        <set>
+            <if test="city_name != null and city_name!=''">city_name = #{city_name},</if>
+            <if test="custome_name != null and custome_name!=''">custome_name = #{custome_name},</if>
+            <if test="custome_leve != null and custome_leve!=''">custome_leve = #{custome_leve},</if>
+            <if test="vrfname!= null and vrfname!=''">vrfname = #{vrfname},</if>
+            <if test="custome_speed!= null and custome_speed!=''">custome_speed = #{custome_speed},</if>
+            <!--<if test="bus_type!= null and bus_type!=''">bus_type = #{bus_type},</if>                       -->
+            <if test="bars_sr_pe_ip!= null and bars_sr_pe_ip!=''">bars_sr_pe_ip = #{bars_sr_pe_ip},</if>
+            <if test="bars_sr_pe_port!= null and bars_sr_pe_port!=''">bars_sr_pe_port = #{bars_sr_pe_port},</if>
+            <if test="bars_sr_pe_physicalport!= null and bars_sr_pe_physicalport!=''">bars_sr_pe_physicalport =
+                #{bars_sr_pe_physicalport},
+            </if>
+            <!--<if test="access_type!= null and access_type!=''">access_type = #{access_type},</if>-->
+            <if test="access_ip!= null and access_ip!=''">access_ip = #{access_ip},</if>
+            <if test="access_port!= null and access_port!=''">access_port = #{access_port},</if>
+            <if test="cus_manager!= null and cus_manager!=''">cus_manager = #{cus_manager},</if>
+            <if test="cus_manager_phone!= null and cus_manager_phone!=''">cus_manager_phone = #{cus_manager_phone},</if>
+            <if test="open_acc_addr!= null and open_acc_addr!=''">open_acc_addr = #{open_acc_addr},</if>
+            <if test="open_acc_name!= null and open_acc_name!=''">open_acc_name = #{open_acc_name},</if>
+            <if test="open_acc_phone!= null and open_acc_phone!=''">open_acc_phone = #{open_acc_phone},</if>
+            <if test="open_acc_time!= null and open_acc_time!=''">open_acc_time = #{open_acc_time},</if>
+            <if test="rd!= null and rd!=''">rd = #{rd},</if>
+            <if test="import_rt!= null and import_rt!=''">import_rt = #{import_rt},</if>
+            <if test="export_rt!= null and export_rt!=''">export_rt = #{export_rt},</if>
+            <if test="svlan!= null and svlan!=''">svlan = #{svlan},</if>
+            <if test="cvlan!= null and cvlan!=''">cvlan = #{cvlan},</if>
+            <if test="cusipnet!= null and cusipnet!=''">cusipnet = #{cusipnet},</if>
+            <if test="cusip!= null and cusip!=''">cusip = #{cusip},</if>
+            <if test="odf1 != null and odf1!=''">odf1 = #{odf1},</if>
+            <if test="odf2 != null and odf2!=''">odf2 = #{odf2},</if>
+        </set>
+        where circuitno=#{circuitno}
+    </update>
+
+    <update id="updVpnInfo" parameterType="map">
+        update tp_mplsvpn_info
+        <set>
+            <if test="mpls_vrfname != null and mpls_vrfname!=''">vrfname = #{mpls_vrfname},</if>
+            <if test="mpls_pe_ip != null and mpls_pe_ip!=''">brasip= #{mpls_pe_ip},</if>
+            <if test="mpls_rd != null and mpls_rd!=''">rd = #{mpls_rd},</if>
+            <if test="mpls_import_rt != null and mpls_import_rt!=''">import_rt = #{mpls_import_rt},</if>
+            <if test="mpls_pe_port != null and mpls_pe_port!=''">pe_port = #{mpls_pe_port},</if>
+            <if test="mpls_physicalport != null and mpls_physicalport!=''">physicalport = #{mpls_physicalport},</if>
+            <if test="mpls_export_rt != null and mpls_export_rt!=''">export_rt = #{mpls_export_rt},</if>
+            <if test="mpls_svlan != null and mpls_svlan!=''">svlan = #{mpls_svlan},</if>
+            <if test="mpls_cvlan != null and mpls_cvlan!=''">cvlan = #{mpls_cvlan},</if>
+            <if test="mpls_ceipnet != null and mpls_ceipnet!=''">ceipnet = #{mpls_ceipnet},</if>
+        </set>
+        where circuitno=#{circuitno}
+    </update>
+
+    <insert id="addCustomerInfo" parameterType="com.ailk.devinfo.domain.SpecialDetailPO">
+		INSERT INTO tab_vpncustome_info
+		(
+		circuitno,
+		city_name,
+		custome_name,
+		custome_leve,
+		custome_speed,
+		custome_type,
+		vrfname,
+		if_man_bear,
+		bus_type,
+		bars_sr_pe_ip,
+		bars_sr_pe_port,
+		bars_sr_pe_physicalport,
+		access_type,
+		access_ip,
+		access_port,
+		cus_manager,
+		cus_manager_phone,
+		open_acc_addr,
+		open_acc_name,
+		open_acc_phone,
+		open_acc_time,
+		rd,
+		import_rt,
+		export_rt,
+		svlan,
+		cvlan,
+		cusipnet,
+		cusip,
+		odf1,
+		odf2
+		)
+		VALUES (
+		#{circuitno},
+		#{city_name},
+		#{custome_name},
+		#{custome_leve},
+		#{custome_speed},
+		#{custome_type},
+		#{vrfname},
+		#{if_man_bear},
+		#{bus_type},
+		#{bars_sr_pe_ip},
+		#{bars_sr_pe_port},
+		#{bars_sr_pe_physicalport},
+		#{access_type},
+		#{access_ip},
+		#{access_port},
+		#{cus_manager},
+		#{cus_manager_phone},
+		#{open_acc_addr},
+		#{open_acc_name},
+		#{open_acc_phone},
+		#{open_acc_time},
+		#{rd},
+		#{import_rt},
+		#{export_rt},
+		#{svlan},
+		#{cvlan},
+		#{cusipnet},
+		#{cusip},
+		#{odf1},
+		#{odf2}
+		)
+	</insert>
+    <insert id="addVpnInfo" parameterType="map">
+	INSERT INTO tp_mplsvpn_info
+	(
+	 circuitno,
+	 vrfname,
+	 brasip,
+	 rd,
+	 import_rt,
+	 pe_port,
+	 physicalport,
+	 export_rt,
+	 svlan,
+	 cvlan,
+	 ceipnet,
+	 gather_id
+	)
+	VALUES (
+	#{circuitno},
+	#{mpls_vrfname},
+	#{mpls_pe_ip},
+	#{mpls_rd},
+	#{mpls_import_rt},
+	#{mpls_pe_port},
+	#{mpls_physicalport},
+	#{mpls_export_rt},
+	#{mpls_svlan},
+	#{mpls_cvlan},
+	#{mpls_ceipnet},
+	'guizhou'
+	)
+</insert>
+    <select id="qryCusInfoByCircuitno" parameterType="string" resultType="map">
+		select * from tab_vpncustome_info where circuitno='${_parameter}'
+	</select>
+    <select id="qryVpnInfoByCircuitno" parameterType="string" resultType="map">
+		select 
+	  a.vrfname as "mpls_vrfname",
+	  a.brasip as "mpls_pe_ip",
+	  a.rd as "mpls_rd",
+	  a.import_rt as "mpls_import_rt",
+	  a.pe_port as "mpls_pe_port",
+	  a.physicalport as  "mpls_physicalport",
+	  a.export_rt as  "mpls_export_rt",
+	  a.svlan as  "mpls_svlan",
+	  a.cvlan as  "mpls_cvlan",
+	  a.ceipnet as  "mpls_ceipnet",
+	  a.pe_port_desc as "mpls_pe_port_desc",
+	  a.arp_ip AS "mpls_arp_ip",
+	  b.fir_switch_ip as "mpls_fir_switch_ip",
+	  b.fir_switch_up_port as "mpls_fir_switch_up_port",
+	  b.fir_switch_down_port as "mpls_fir_switch_down_port",
+	  b.sec_switch_ip as "mpls_sec_switch_ip",
+	  b.sec_switch_up_port as "mpls_sec_switch_up_port",
+	  b.sec_switch_down_port as "mpls_sec_switch_down_port",
+	  b.access_ip as "mpls_access_ip",
+	  b.access_up_port as "mpls_access_up_port",
+	  b.access_down_port as"mpls_access_down_port",
+	  d.city_id as "mpls_city_id",
+	  d.device_name as "mpls_device_name",
+	  e.device_name as "mpls_fir_switch_name",
+	  f.device_name as "mpls_sec_switch_name",
+	  g.device_name as "mpls_access_name"
+	  from tp_mplsvpn_info a
+	  left join tp_mplsvpn_link b on a.circuitno =b.circuitno
+	  left join tab_deviceresource d on a.brasip = d.loopback_ip
+	  left join tab_deviceresource e on b.fir_switch_ip=e.loopback_ip
+	  left join tab_deviceresource f on b.sec_switch_ip= f.loopback_ip
+	  left join tab_deviceresource g on b.access_ip= g.loopback_ip
+
+	  where a.circuitno='${_parameter}'
+
+	</select>
+
+
+</mapper>

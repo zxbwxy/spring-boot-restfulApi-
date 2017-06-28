@@ -1,0 +1,14 @@
+########################################################
+###datasource
+########################################################
+
+spring.datasource.url=jdbc:jtds:sybase://202.98.199.141:4100/zhwgdb
+spring.datasource.username=tablequerymanager
+spring.datasource.password=mypassword123
+spring.datasource.driverClassName=net.sourceforge.jtds.jdbc.Driver
+spring.datasource.max-active=20
+spring.datasource.max-idle=8
+spring.datasource.min-idle=8
+mybatis.typeAliasesPackage=com.ailk.devinfo.domain
+mybatis.mapperLocations=classpath:mapper/*.xml
+logging.level.com.ailk.devinfo.mapper=TRACE

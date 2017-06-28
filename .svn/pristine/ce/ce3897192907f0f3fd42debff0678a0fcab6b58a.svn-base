@@ -1,0 +1,89 @@
+package com.ailk.devinfo.web;
+
+import com.ailk.devinfo.domain.DevInfoPO;
+import com.ailk.devinfo.serv.DevInfoServ;
+import com.alibaba.fastjson.JSON;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 设备资源
+ *
+ * @author zhuxb3(74637)
+ * @version 1.0
+ * @category com.ailk.devinfo.web
+ * @copyright Ailk NBS-Network Mt. RD Dept.
+ * @since 2017/3/30 15:58
+ */
+@Controller
+public class DevInfoControl
+{
+    public static final Logger logger =Logger.getLogger(DevInfoControl.class);
+    @Autowired
+    private DevInfoServ devInfoServ;
+
+    /**
+     * 测试
+     * @return
+     */
+    @RequestMapping("/index")
+    public String index() {
+        logger.info("index enter ...");
+        return "index111.html";
+    }
+
+    /**
+     * 查询设备信息
+     * @param devInfoPOs
+     * @return
+     */
+
+    @RequestMapping("/devInfo")
+    @ResponseBody
+    public List<DevInfoPO> selectDevInfo(@RequestBody List<DevInfoPO> devInfoPOs)
+    {
+        logger.info("DevInfoControl enter ..."+ JSON.toJSONString(devInfoPOs));
+       return devInfoServ.selectDevInfo(devInfoPOs);
+    }
+
+
+    @RequestMapping("/qryVendors")
+    @ResponseBody
+    public List<Map<String, Object>> qryVendors(){
+
+        return devInfoServ.qryVendors();
+    }
+
+    @RequestMapping("/qryDeviceModels")
+    @ResponseBody
+    List<Map<String, Object>> qryDeviceModels(@RequestParam(name="vendor_id",required = false) String vendor_id){
+
+        logger.info("vendor_id:"+vendor_id);
+        return devInfoServ.qryDeviceModels(vendor_id);
+    }
+
+    @RequestMapping("/qryCitys")
+    @ResponseBody
+    List<Map<String, Object>> qryCitys(){
+        return devInfoServ.qryCitys();
+    }
+    @RequestMapping("/qryOffices")
+    @ResponseBody
+    List<Map<String, Object>> qryOffices(@RequestParam(name="city_id",required = false) String city_id){
+        logger.info("city_id:"+city_id);
+        return devInfoServ.qryOffices(city_id);
+    }
+    @RequestMapping("/qryZones")
+    @ResponseBody
+    List<Map<String, Object>> qryZones(){
+        return devInfoServ.qryZones();
+    }
+}

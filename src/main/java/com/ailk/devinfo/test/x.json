@@ -1,0 +1,30 @@
+{
+  "lineFlag": null,
+  "customeName": null,
+  "cityId": null,
+  "barsOrSrIP": null,
+  "vrfName": null,
+  "circuitno": "U001774",
+  "pageNo": null,
+  "pageSize": null,
+  "pageTotalCount": "1",
+  "top": "10",
+  "lineInfoList": [
+    {
+      "circuitno": "U001774",
+      "cusip": "",
+      "arp_ip": null,
+      "ceipnet": "192.168.100.120/29",
+      "cvlan": "499",
+      "vrfname": "CTVPN2100024-SHICAIZHENGJU",
+      "city_name": "贵阳",
+      "device_name": "贵阳-云岩-黑马局-SR-1.MAN.NE80E(G1010301)",
+      "cus_manager": "asdaf",
+      "custome_leve": "AAAA",
+      "custome_name": "",
+      "svlan": "3609",
+      "city_id": "0015100",
+      "status": "1"
+    }
+  ]
+}

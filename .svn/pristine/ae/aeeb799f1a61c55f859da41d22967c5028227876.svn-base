@@ -1,0 +1,103 @@
+package com.ailk.devinfo.serv;
+
+import com.ailk.devinfo.domain.DevInfoPO;
+import com.ailk.devinfo.mapper.DevInfoMapper;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * @author zhuxb3(74637)
+ * @version 1.0
+ * @category com.ailk.devinfo.serv
+ * @copyright Ailk NBS-Network Mgt. RD Dept.
+ * @since 2017/3/30 16:22
+ */
+@Service
+public class DevInfoServ
+{
+    public static final Logger logger =Logger.getLogger(DevInfoServ.class);
+    @Autowired
+    private DevInfoMapper devInfoMapper;
+    public List<DevInfoPO>  selectDevInfo(List<DevInfoPO> devInfoPOs)
+    {
+        logger.info("DevInfoServ enter...");
+        List<Map<String, Object>> lst=null;
+        for (DevInfoPO dev:devInfoPOs){
+            //
+           lst= devInfoMapper.queryDevInfo(dev);
+            logger.info("DevInfoServ lst.size"+lst.size());
+            if(!CollectionUtils.isEmpty(lst)){
+                dev.setDevInfoList(lst);//不为null
+            }
+        }
+        return devInfoPOs;
+    }
+
+    /**
+     * 设备厂商列表
+     * @return
+     */
+    public List<Map<String,Object>>  qryVendors()
+    {
+        logger.info("qryVendorList enter...");
+        List<Map<String, Object>> lst=null;
+        lst=devInfoMapper.qryVendors();
+
+        return lst;
+    }
+    /**
+     * 根据vendor_id 获取设备型号列表
+     * @return
+     */
+    public List<Map<String,Object>>  qryDeviceModels(String vendor_id)
+    {
+        logger.info("qryDeviceModels enter...");
+        List<Map<String, Object>> lst=null;
+        lst=devInfoMapper.qryDeviceModels(vendor_id);
+
+        return lst;
+    }
+
+    /**
+     * 属地列表
+     * @return
+     */
+    public List<Map<String,Object>>  qryCitys()
+    {
+        logger.info("qryCitys enter...");
+        List<Map<String, Object>> lst=null;
+        lst=devInfoMapper.qryCitys();
+        return lst;
+    }
+
+    /**
+     * 局向列表
+     * @return
+     */
+    public List<Map<String,Object>>  qryOffices(String city_id)
+    {
+        logger.info("qryOffices enter...");
+        List<Map<String,Object>> lst=null;
+        lst=devInfoMapper.qryOffices(city_id);
+        return lst;
+    }
+
+
+    /**
+     * 小区列表
+     * @return
+     */
+    public List<Map<String,Object>>  qryZones()
+    {
+        logger.info("qryZones enter...");
+        List<Map<String, Object>> lst=null;
+        lst=devInfoMapper.qryZones();
+        return lst;
+    }
+}

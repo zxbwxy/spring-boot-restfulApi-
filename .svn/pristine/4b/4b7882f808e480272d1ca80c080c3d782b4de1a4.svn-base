@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- JQuery import -->
+    <script src="./js/jquery-3.1.1.min.js"></script>
+</head>
+
+<body>
+
+<!-- test form -->
+<form id="formz">
+    <label for="button_submit">click to test</label></br>
+    设备IP： <input name="deviceIp"/></br>
+    设备编号： <input name="deviceIdEx"/><input type="checkbox" name="deviceIdExQueryType" value="0">精确</br>
+    设备名称： <input name="deviceName"/><input type="checkbox" name="deviceNameQueryType" value="0">精确</br>
+    设备配置名称： <input name="remark"/></br>
+    设备厂商： <select name="vendorName"></select></br>
+    设备型号： <select name="deviceModel"></select></br>
+    属地标识: <select name="cityName"></select></br>
+    局向标识：<select name="officeName"></select></br>
+    小区标识： <select name="zoneName"></select></br>
+    loopbackIp地址： <input name="loopBackIp"/></br>
+    最小IP地址： <input name="minIp"/></br>
+    <input id="button_submit" type="button" name="button_submit" value="dianwo" accept="*"/>
+</form>
+<br/>
+<hr/>
+
+<!-- Javascript functions -->
+<script>
+
+    //base url
+    var baseUrl = "http://202.98.199.215:38080/";
+
+    //temp variable
+    var optionStr = "";
+    $(document).ready(function () {
+
+        if(d=='0')
+        //load vendor list    --设备厂商
+        $.ajax({
+            type: "POST",
+            url: baseUrl + "qryVendors",
+            dataType: "json",
+            contentType: "application/json",
+            success: function (data) {
+                //console.log("qryVendors:" + data)
+                $("select[name='vendorName']").append("<option value=''> ===请选择===</option>");
+                $("select[name='deviceModel']").append("<option value=''> ===请先选择厂商===</option>");
+                $.each(data, function (index, element) {
+                    optionStr = "<option value='" + element["vendor_id"] + "'>" + element["vendor_name"] + "</option>";
+                    $("select[name='vendorName']").append(optionStr);
+                });
+
+            }
+        });
+        //bind the change event for  load deviceModels by vendor_id  --根据设备厂商id 获取设备型号
+        $("select[name='vendorName']").change(function () {
+            //empty DeviceModels data
+            $("select[name='deviceModel']").empty();
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "qryDeviceModels",
+                data: {'vendor_id': $(this).val()},
+                dataType: "json",
+                //contentType : 'application/json',放开取不到值
+                success: function (data) {
+                    $.each(data, function (index, element) {
+                        optionStr = "<option value='" + element["device_name"] + "'>" + element["device_name"] + "</option>";
+                        $("select[name='deviceModel']").append(optionStr);
+                    });
+
+                }
+            });
+        });
+
+
+        //load city list  --属地标识
+        $.ajax({
+            type: "POST",
+            url: baseUrl + "qryCitys",
+            dataType: "json",
+            contentType: "application/json",
+            success: function (data) {
+                $("select[name='cityName']").append("<option value=''> ===请选择===</option>");
+                $.each(data, function (index, element) {
+                    optionStr = "<option value='" + element["city_id"] + "'>" + element["city_name"] + "</option>";
+                    $("select[name='cityName']").append(optionStr);
+                });
+
+            }
+        });
+        //init  office and zone
+        var noDataOption = "<option value=''>==此项没有记录==</option>";
+        $("select[name='officeName']").append(noDataOption);
+        $("select[name='zoneName']").append(noDataOption);
+
+        //bind the change event for  load offices by city_id  --小区标识
+        $("select[name='cityName']").change(function () {
+            //empty officeName data
+            $("select[name='officeName']").empty();
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "qryOffices",
+                data: {'city_id': $(this).val()},
+                dataType: "json",
+                success: function (data) {
+                    console.log("officeName.length:" + data.length);
+                    if (data.length == 0) {
+                        $("select[name='officeName']").append(noDataOption);
+                    } else {
+                        $.each(data, function (index, element) {
+                            optionStr = "<option value='" + element["office_id"] + "'>" + element["office_name"] + "</option>";
+                            $("select[name='officeName']").append(optionStr);
+                        });
+                    }
+
+                }
+            });
+            $("select[name='zoneName']").append(noDataOption);
+        });
+
+
+        // bind the click event for the input button
+        $("#button_submit").click(testspecilLine);
+        //--------------------------------------------------------------
+    });
+    function testspecilLine(){
+        var url = "http://202.98.199.215:38080/specialLine/qryVPNOrInternetData";
+        var reqObj = {};
+        reqObj.circuitno="U001774";
+
+
+        //console.log($("#formz").serialize());
+        $.ajax({
+            type: "POST",
+            url: url,
+            dataType: "json",
+            contentType: "application/json",
+            data: JSON.stringify(reqObj),
+            success: function (data) {
+                alld=data;
+                console.log("length:" + data.length);
+                console.log(data);
+
+            }
+        });
+    }
+    /**
+     *  Ajax at the Spring Boot server.
+     */
+    var alld;
+    function test() {
+        var url = "http://202.98.199.215:38080//qryDevInfo";
+
+//        var data1 = {"deviceIp": "59.51.182.94", "vendorName": "华为", "deviceModel": "3352"};
+//        var data2 = {"deviceIp": "10.245.24.33", "vendorName": "ZTE", "deviceModel": "F820"};
+//        dataAry.push(data1);
+//        dataAry.push(data2);
+        //var dataAry = [];
+        var reqObj = {};
+        reqObj.deviceId="100000";
+        reqObj.deviceIp = "10.245.24.33";
+        reqObj.deviceIdEx = $("input[name='deviceIdEx']").val();
+        reqObj.deviceIdExQueryType = $("input[name='deviceIdExQueryType']").val();
+        reqObj.deviceName = $("input[name='deviceName']").val();
+        reqObj.deviceNameQueryType = $("input[name='deviceNameQueryType']").val();
+        reqObj.remark = $("input[name='remark']").val();
+        reqObj.vendorName = $("select[name='vendorName']").val();
+        reqObj.deviceModel = $("select[name='deviceModel']").val();
+        reqObj.cityName = $("select[name='cityName']").val();
+        reqObj.officeName = $("select[name='officeName']").val();
+        reqObj.zoneName = $("select[name='zoneName']").val();
+        reqObj.minIp = $("input[name='minIp']").val();
+        reqObj.loopBackIp = $("input[name='loopBackIp']").val();
+        reqObj.pageNo = "1";
+        reqObj.pageSize = "10";
+        //dataAry.push(reqObj);
+
+        //console.log($("#formz").serialize());
+        $.ajax({
+            type: "POST",
+            url: url,
+            dataType: "json",
+            contentType: "application/json",
+            data: JSON.stringify(reqObj),
+            success: function (data) {
+                alld=data;
+                console.log("length:" + data.length);
+                console.log(data);
+
+            }
+        });
+    }
+</script>
+
+
+</body>
+
+</html>

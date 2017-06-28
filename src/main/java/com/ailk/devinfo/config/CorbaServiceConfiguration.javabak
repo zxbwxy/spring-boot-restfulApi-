@@ -1,0 +1,65 @@
+package com.ailk.devinfo.config;
+
+import com.linkage.system.jdbc.jpa.JPABaseDAO;
+import com.linkage.system.jdbc.jpa.SqlSessionTemplate;
+import com.linkage.system.utils.corba.CorbaService;
+import org.springframework.context.annotation.Bean;
+
+/**
+ * @author zhuxb
+ * @create 2017-05-03 15:55
+ */
+//@Configuration
+//@ImportResource(locations = {"classpath*:com/linkage/module/liposs/system/cao/*.xml"})
+public class CorbaServiceConfiguration
+{
+    @Bean(name = "iposs_corbaService")
+    public CorbaService configCorbaService(CorbaService cor)
+    {
+        //<bean id="iposs_corbaService" class="com.linkage.system.utils.corba.CorbaService">
+        //        <property name="corbaServiceName" value="CourbaService"></property>
+        //        <property name="server_host" value="202.98.199.142"></property>
+        //        <property name="namingServiceLoc"
+        //value="corbaloc:iiop:1.2@202.98.199.142:2809/NameService"></property>
+        CorbaService corbaService = new CorbaService();
+        corbaService.setCorbaServiceName("CourbaService");
+        corbaService.setServer_host("202.98.199.142");
+        corbaService.setNamingServiceLoc("corbaloc:iiop:1.2@202.98.199.142:2809/NameService");
+        return corbaService;
+    }
+
+    //@Bean
+    //public DataSource dataSource()
+    //{
+    //    BasicDataSource dataSource = new BasicDataSource();
+    //    dataSource.setDriverClassName("com.sybase.jdbc2.jdbc.SybDriver");
+    //    dataSource.setUrl("jdbc:sybase:Tds:202.98.199.141:4100/ldims");
+    //    dataSource.setUsername("tablequerymanager");
+    //    dataSource.setPassword("mypassword123");
+    //    return dataSource;
+    //}
+    //
+    //
+    //@Bean
+    //public SqlSessionFactoryBean sqlSessionFactory() throws Exception
+    //{
+    //    SqlSessionFactoryBean sessionFactory = new SqlSessionFactoryBean();
+    //    sessionFactory.setDataSource(dataSource());
+    //    return sessionFactory;
+    //}
+    //@Bean
+    //@Autowired
+    //public SqlSessionTemplate sqlSessionTemplate(SqlSessionFactory s)
+    //{
+    //    SqlSessionTemplate template = new SqlSessionTemplate(s);
+    //    return template;
+    //}
+
+    @Bean("baseDao")
+    public JPABaseDAO baseDao(SqlSessionTemplate s) throws Exception
+    {
+        JPABaseDAO jpaBaseDAO=new JPABaseDAO();
+        jpaBaseDAO.setSqlSessionTemplate(s);
+        return jpaBaseDAO;
+    }
+}

@@ -1,0 +1,197 @@
+package com.ailk.devinfo.domain;
+
+import com.alibaba.fastjson.JSON;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * @author zhuxb3(74637)
+ * @version 1.0
+ * @category com.ai.ngis.sysinf.bus.socserv.pojo
+ * @copyright Ailk NBS-Network Mgt. RD Dept.
+ * @since 2017-03-29 10:41:10
+ */
+public class DevInfoPO
+{
+
+    //private String vendor_id;
+
+    private String deviceIdExQueryType; //--0：精确 ，--1：模糊
+    private String deviceNameQueryType; //--0：精确 ，--1：模糊
+    private String deviceIp;
+    private String deviceIdEx;
+    private String deviceName;
+    private String remark;
+    private String vendorName;
+    private String deviceModel;
+    private String cityName;
+    private String officeName;
+    private String zoneName;
+    private String loopBackIp;
+    private String minIp;
+    //private Map<String, Object> devInfoMap;
+    private List<Map<String, Object>> devInfoList;
+
+
+    public String getDeviceIdExQueryType()
+    {
+        return deviceIdExQueryType;
+    }
+
+    public void setDeviceIdExQueryType(String deviceIdExQueryType)
+    {
+        this.deviceIdExQueryType = deviceIdExQueryType;
+    }
+
+    public String getDeviceNameQueryType()
+    {
+        return deviceNameQueryType;
+    }
+
+    public void setDeviceNameQueryType(String deviceNameQueryType)
+    {
+        this.deviceNameQueryType = deviceNameQueryType;
+    }
+
+    public String getDeviceIdEx()
+    {
+        return deviceIdEx;
+    }
+
+    public void setDeviceIdEx(String deviceIdEx)
+    {
+        this.deviceIdEx = deviceIdEx;
+    }
+
+    public String getDeviceName()
+    {
+        return deviceName;
+    }
+
+    public void setDeviceName(String deviceName)
+    {
+        this.deviceName = deviceName;
+    }
+
+    public String getRemark()
+    {
+        return remark;
+    }
+
+    public void setRemark(String remark)
+    {
+        this.remark = remark;
+    }
+
+    public String getCityName()
+    {
+        return cityName;
+    }
+
+    public void setCityName(String cityName)
+    {
+        this.cityName = cityName;
+    }
+
+    public String getOfficeName()
+    {
+        return officeName;
+    }
+
+    public void setOfficeName(String officeName)
+    {
+        this.officeName = officeName;
+    }
+
+    public String getZoneName()
+    {
+        return zoneName;
+    }
+
+    public void setZoneName(String zoneName)
+    {
+        this.zoneName = zoneName;
+    }
+
+    public String getLoopBackIp()
+    {
+        return loopBackIp;
+    }
+
+    public void setLoopBackIp(String loopBackIp)
+    {
+        this.loopBackIp = loopBackIp;
+    }
+
+    public String getMinIp()
+    {
+        return minIp;
+    }
+
+    public void setMinIp(String minIp)
+    {
+        this.minIp = minIp;
+    }
+
+
+    public String getDeviceIp()
+    {
+        return deviceIp;
+    }
+
+    public void setDeviceIp(String deviceIp)
+    {
+        this.deviceIp = deviceIp;
+    }
+
+    public String getVendorName()
+    {
+        return vendorName;
+    }
+
+    public void setVendorName(String vendorName)
+    {
+        this.vendorName = vendorName;
+    }
+
+    public String getDeviceModel()
+    {
+        return deviceModel;
+    }
+
+    public void setDeviceModel(String deviceModel)
+    {
+        this.deviceModel = deviceModel;
+    }
+
+    public List<Map<String, Object>> getDevInfoList()
+    {
+        return devInfoList;
+    }
+
+    public void setDevInfoList(List<Map<String, Object>> devInfoList)
+    {
+        this.devInfoList = devInfoList;
+    }
+
+    public DevInfoPO()
+    {
+    }
+
+    public DevInfoPO(String deviceIp, String vendorName, String deviceModel)
+    {
+        this.deviceIp = deviceIp;
+        this.vendorName = vendorName;
+        this.deviceModel = deviceModel;
+    }
+
+
+    @Override
+    public String toString()
+    {
+        return this.getClass().getSimpleName() + "--toString--" + JSON.toJSONString(this);
+    }
+
+
+}

@@ -1,0 +1,5 @@
+com\ailk\devinfo\SpringBootDevInfoApplication.class
+com\ailk\devinfo\mapper\DevInfoMapper.class
+com\ailk\devinfo\serv\DevInfoServ.class
+com\ailk\devinfo\web\DevInfoControl.class
+com\ailk\devinfo\domain\DevInfoPO.class

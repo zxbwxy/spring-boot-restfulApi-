@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="gbk" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ailk.devinfo.mapper.DevInfoMapper">
+
+
+    <select id="qryVendors" resultType="map">
+        select vendor_id as "vendor_id",vendor_name as "vendor_name" from tab_vendor
+    </select>
+
+    <select id="qryDeviceModels" parameterType="string" resultType="map">
+        select device_name as "device_name" from tp_devicetype_info
+        <where>
+            <if test="vendor_id!=null and vendor_id!=''">
+                vendor_id=${vendor_id}
+            </if>
+        </where>
+    </select>
+
+    <select id="qryCitys" resultType="map">
+        select city_id as "city_id",city_name as "city_name",
+         parent_id as "parent_id" from tab_city where city_id='0010000' or parent_id='0010000' order by city_id
+    </select>
+
+    <select id="qryOffices" parameterType="string" resultType="map">
+        select distinct a.office_id as "office_id",a.office_name as "office_name" from tab_office a
+        inner join tab_city b on a.city_id =b.city_id
+        <where>
+            <if test="city_id!=null and city_id!=''and city_id!='0010000'">
+                (b.city_id='${city_id}' or b.parent_id='${city_id}')
+            </if>
+        </where>
+        order by a.office_name
+    </select>
+
+    <select id="qryZones" resultType="map">
+       select zone_id as "zone_id",zone_name as "zone_name" from tab_zone
+    </select>
+    <select id="qryResourceTypes" resultType="map">
+         select resource_type_id as "resource_type_id",resource_name as "resource_name" from tab_resourcetype order by resource_type_id
+    </select>
+
+    <select id="qryOsVersions" resultType="map">
+          select distinct os_version as "os_version" from tp_devicetype_info where os_version is not NULL and os_version!=''
+    </select>
+
+    <select id="qryGathers" resultType="map">
+        select gather_id as "gather_id",descr as "desc" from tab_process_desc
+    </select>
+
+
+    <select id="queryDevInfo" parameterType="com.ailk.devinfo.domain.DevInfoPO"
+            resultType="map">
+        select
+        <if test="top!=null and top!=''">
+            top ${top}
+        </if>
+        a.device_id as "device_id",--设备id
+        a.device_id_ex as "device_id_ex", --设备编号
+        a.device_name as "device_name", --设备名称
+        a.device_group as "device_group",--组别
+        a.loopback_ip as "loopback_ip", --loopback ip地址
+        a.min_ip as "min_ip",--最小ip地址
+        a.snmp_ro_community as "snmp_ro_community",--snmp字串
+        a.device_serialnumber as "device_serialnumber",--产品序列号
+        a.device_model as "device_model",--设备型号
+        a.os_name as "os_name",--操作系统名称
+        a.real_os_version as "real_os_version" ,--操作系统版本
+        a.device_addr as "device_addr",--设备详细地址
+        a.device_useto as "device_useto",--设备用途
+        a.complete_time as "complete_time",--设备终验时间
+        a.cpu_model as "cpu_model",--cpu型号
+        a.memory as "memory", --内存大小
+        a.storage as "storage",--存储大小
+        a.patch as "patch",--补丁信息
+        a.buy_time as "buy_time",--购买时间
+        a.service_year as "service_year",--服务年限
+        a.staff_id as "staff_id",--员工代码
+        a.remark as "remark",--备注
+        a.os_version as "os_version",--mib版本
+        b.city_name as "city_name",--属地标识
+        c.office_name as "office_name",--局向标识
+        d.resource_name as "resource_name",--资源类型标识
+        --连接三层设备 device_name
+        e.zone_name as "zone_name",--小区标识
+        f.interface_des as "interface_des",--端口描述
+        g.vendor_name as "vendor_name",--设备厂商
+        h.vendor_name as "integrate_vendor_name",--设备集成商代码
+        i.per_name as "per_name",--设备管理责任人
+        j.descr as "gather_descr"
+        from tab_deviceresource a
+        left join tab_city b on a.city_id=b.city_id
+        left join tab_office c on a.office_id=c.office_id
+        left join tab_resourcetype d on a.resource_type_id=d.resource_type_id
+        left join tab_zone e on a.zone_id=e.zone_id
+        left join tab_interface f on a.interface_id=f.interface_id
+        left join tab_vendor g on a.vendor_id=g.vendor_id
+        left join tab_vendor h on a.device_integrator_id=h.vendor_id
+        left join tab_persons i on a.manage_staff=convert(varchar,i.per_acc_oid)
+        left join tab_process_desc j on a.gather_id=j.gather_id
+        <where>
+            <if test="deviceId!=null and deviceId!=''">
+                and a.device_id='${deviceId}'
+            </if>
+            <if test="deviceIp!=null and deviceIp!=''">
+                and a.loopback_ip='${deviceIp}'
+            </if>
+            <choose>
+                <when test="deviceIdExQueryType!=null and deviceIdExQueryType!='' and deviceIdExQueryType=='0'">
+                    <if test="deviceIdEx!=null and deviceIdEx!=''">
+                        and a.device_id_ex='${deviceIdEx}'
+                    </if>
+                </when>
+                <when test="deviceIdExQueryType!=null and deviceIdExQueryType!='' and deviceIdExQueryType=='1'">
+                    <if test="deviceIdEx!=null and deviceIdEx!=''">
+                        and a.device_id_ex like '%${deviceIdEx}%'
+                    </if>
+                </when>
+                <otherwise>
+                    <if test="deviceIdEx!=null and deviceIdEx!=''">
+                        and a.device_id_ex like '%${deviceIdEx}%'
+                    </if>
+                </otherwise>
+            </choose>
+
+            <choose>
+                <when test="deviceNameQueryType!=null and deviceNameQueryType!='' and deviceNameQueryType=='0'">
+                    <if test="deviceName!=null and deviceName!=''">
+                        and a.device_name='${deviceName}'
+                    </if>
+                </when>
+                <when test="deviceNameQueryType!=null and deviceNameQueryType!='' and deviceNameQueryType=='1'">
+                    <if test="deviceName!=null and deviceName!=''">
+                        and a.device_name like '%${deviceName}%'
+                    </if>
+                </when>
+                <otherwise>
+                    <if test="deviceName!=null and deviceName!=''">
+                        and a.device_name like '%${deviceName}%'
+                    </if>
+                </otherwise>
+            </choose>
+
+            <if test="remark!=null and remark!=''">
+                and a.remark='${remark}'
+            </if>
+            <if test="vendorName!=null and vendorName!=''">
+                and g.vendor_id=${vendorName}
+            </if>
+            <if test="deviceModel!=null and deviceModel!=''">
+                and a.device_model='${deviceModel}'
+            </if>
+            <if test="cityName!=null and cityName!=''">
+                and b.city_id='${cityName}'
+            </if>
+            <if test="officeName!=null and officeName!=''">
+                and c.office_name='${officeName}'
+            </if>
+            <if test="zoneName!=null and zoneName!=''">
+                and e.zone_name='${zoneName}'
+            </if>
+            <if test="loopBackIp!=null and loopBackIp!=''">
+                and a.loopback_ip='${loopBackIp}'
+            </if>
+            <if test="minIp!=null and minIp!=''">
+                and a.min_ip='${minIp}'
+            </if>
+
+        </where>
+
+    </select>
+
+    <update id="updDevInfo" parameterType="com.ailk.devinfo.domain.DevInfoPO">
+        update tab_deviceresource
+        <set>
+            <if test="deviceIdEx!=null and deviceIdEx!=''">
+                device_id_ex='${deviceIdEx}',
+            </if>
+            <if test="deviceName!=null and deviceName!=''">
+                device_name='${deviceName}',
+            </if>
+            <if test="loopBackIp!=null and loopBackIp!=''">
+                loopback_ip='${loopBackIp}',
+            </if>
+            <if test="resourceTypeId!=null and resourceTypeId!=''">
+                resource_type_id=${resourceTypeId},
+            </if>
+            <if test="vendorId!=null and vendorId!=''">
+                vendor_id=${vendorId},
+            </if>
+            <if test="deviceModel!=null and deviceModel!=''">
+                device_model='${deviceModel}',
+            </if>
+            <if test="osVersion!=null and osVersion!=''">
+                os_version='${osVersion}',
+            </if>
+            <if test="snmpRoCommunity!=null and snmpRoCommunity!=''">
+                snmp_ro_community='${snmpRoCommunity}',
+            </if>
+            <if test="snmpRwCommunity!=null and snmpRwCommunity!=''">
+                snmp_rw_community='${snmpRwCommunity}',
+            </if>
+            <if test="cityId!=null and cityId!=''">
+                city_id='${cityId}',
+            </if>
+            <if test="officeId!=null and officeId!=''">
+                office_id='${officeId}',
+            </if>
+            <if test="zoneId!=null and zoneId!=''">
+                zone_id='${zoneId}',
+            </if>
+            <if test="deviceSerialNumeric!=null and deviceSerialNumeric!=''">
+                device_serialnumber='${deviceSerialNumeric}',
+            </if>
+            <if test="staffId!=null and staffId!=''">
+                staff_id='${staffId}',
+            </if>
+            <if test="gatherId!=null and gatherId!=''">
+                gather_id='${gatherId}',
+            </if>
+            <if test="serviceYear!=null and serviceYear!=''">
+                service_year=${serviceYear},
+            </if>
+            <if test="remark!=null and remark!=''">
+                remark='${remark}',
+            </if>
+
+        </set>
+        where device_id='${deviceId}'
+    </update>
+
+    <delete id="delDevInfo" parameterType="string">
+        delete from tab_deviceresource where device_id='${deviceId}'
+    </delete>
+
+
+</mapper>
